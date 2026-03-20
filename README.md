@@ -1,3 +1,2 @@
-# Welcome to your Lovable project
+redirect to portfolio
 
-TODO: Document your project here
