@@ -1,21 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
-import { fetchMedia, fetchMediaBatch, type NormalizedMedia } from "@/lib/media-service";
+import { fetchMediaBatch, type NormalizedMedia } from "@/lib/media-service";
 import type { MediaSource, MediaEntry } from "@/lib/media-config";
 
-/** Fetch a single media item */
-export function useMediaItem(source: MediaSource, id: number) {
-  return useQuery<NormalizedMedia>({
-    queryKey: ["media", source, id],
-    queryFn: () => fetchMedia(source, id),
-    staleTime: 1000 * 60 * 60, // 1 hour
-    gcTime: 1000 * 60 * 60 * 2,
-  });
-}
-
-/** Fetch a batch of media items */
 export function useMediaBatch(entries: { id: number; source: MediaSource }[]) {
+  const entryKey = entries.map((entry) => `${entry.source}:${entry.id}`);
+
   return useQuery<NormalizedMedia[]>({
-    queryKey: ["media-batch", entries.map((e) => `${e.source}:${e.id}`).join(",")],
+    queryKey: ["media-batch", entryKey],
     queryFn: () => fetchMediaBatch(entries),
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 2,
@@ -23,7 +14,6 @@ export function useMediaBatch(entries: { id: number; source: MediaSource }[]) {
   });
 }
 
-/** Merge fetched API data with local config (insight, tag, modal) */
 export function mergeWithConfig(
   media: NormalizedMedia,
   config: MediaEntry

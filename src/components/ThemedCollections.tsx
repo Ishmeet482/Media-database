@@ -17,13 +17,13 @@ const CollectionRow = ({ name, items, index }: { name: string; items: typeof col
                 className="min-w-[160px] rounded-lg bg-card/30 backdrop-blur-md border border-border/15 p-3.5 flex flex-col gap-2 opacity-0 animate-fade-in-right cursor-default transition-all duration-500 ease-out hover:border-border/40 hover:bg-card/50 hover:-translate-y-0.5"
                 style={{ animationDelay: `${index * 0.1 + i * 0.08}s` }}
               >
-                <div className="h-20 rounded-md overflow-hidden relative">
+                <div className="aspect-[2/3] rounded-md overflow-hidden relative bg-card/45">
                   {media.posterUrl ? (
                     <img
                       src={media.posterUrl}
                       alt={media.title}
                       loading="lazy"
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-0 h-full w-full object-cover"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-secondary/50 flex items-center justify-center">

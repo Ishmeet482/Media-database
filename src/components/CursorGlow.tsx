@@ -4,7 +4,14 @@ const CursorGlow = () => {
   const glowRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let animFrame: number | null = null;
+    if (
+      !window.matchMedia("(hover: hover) and (pointer: fine)").matches ||
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ) {
+      return;
+    }
+
+    let animFrame = 0;
     let x = 0;
     let y = 0;
     let targetX = 0;
@@ -23,14 +30,16 @@ const CursorGlow = () => {
     const animate = () => {
       x += (targetX - x) * 0.08;
       y += (targetY - y) * 0.08;
+
       if (glowRef.current) {
         glowRef.current.style.transform = `translate3d(${x - 200}px, ${y - 200}px, 0)`;
       }
-      // Stop animating when close enough
+
       if (Math.abs(targetX - x) > 0.5 || Math.abs(targetY - y) > 0.5) {
         animFrame = requestAnimationFrame(animate);
       } else {
         isMoving = false;
+        animFrame = 0;
       }
     };
 
@@ -38,7 +47,9 @@ const CursorGlow = () => {
 
     return () => {
       window.removeEventListener("mousemove", handleMove);
-      if (animFrame !== null) cancelAnimationFrame(animFrame);
+      if (animFrame) {
+        cancelAnimationFrame(animFrame);
+      }
     };
   }, []);
 

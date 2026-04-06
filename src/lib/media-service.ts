@@ -3,7 +3,7 @@
  * All API calls route through here. Results are normalized into a consistent shape.
  */
 
-import type { MediaSource } from "./media-config";
+import type { MediaEntry, MediaSource } from "./media-config";
 
 const TMDB_API_KEY =
   "eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI0MGU4MmNkMWIwMzFiNjNjNDJjNGExMTU0ZTNhMzliOCIsIm5iZiI6MTc3Mzk1MTI4Ni45MDEsInN1YiI6IjY5YmM1OTM2MjJkYjQ3MjhjYWE5ODlkYyIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.lTiLPhHScXLQsFVBc0ZrDAVTz3C7KRCpX9QCADUgNhg";
@@ -25,16 +25,11 @@ export interface NormalizedMedia {
   backdropUrl: string | null;
 }
 
-// ── In-memory cache ─────────────────────────────────────────────
-
 const cache = new Map<string, NormalizedMedia>();
 
 function cacheKey(source: MediaSource, id: number): string {
   return `${source}:${id}`;
 }
-
-// ── Global Jikan rate-limit queue ───────────────────────────────
-// Jikan allows ~3 requests/sec. We serialize ALL Jikan calls globally.
 
 let jikanQueue: Promise<void> = Promise.resolve();
 
@@ -47,12 +42,9 @@ function enqueueJikan<T>(fn: () => Promise<T>): Promise<T> {
       return new Promise<never>((_, reject) => setTimeout(() => reject(err), 400));
     }
   );
-  // Update queue tail (ignore errors so queue doesn't break)
   jikanQueue = task.then(() => {}, () => {});
   return task;
 }
-
-// ── TMDB helpers ────────────────────────────────────────────────
 
 async function tmdbFetch<T>(path: string): Promise<T> {
   const res = await fetch(`${TMDB_BASE}${path}`, {
@@ -106,8 +98,6 @@ function normalizeTmdbTv(d: TmdbTv): NormalizedMedia {
   };
 }
 
-// ── Jikan helpers ───────────────────────────────────────────────
-
 interface JikanAnime {
   mal_id: number;
   title: string;
@@ -145,7 +135,23 @@ function normalizeJikan(d: JikanAnime): NormalizedMedia {
   };
 }
 
-// ── Public API ──────────────────────────────────────────────────
+function createFallbackMedia(entry: MediaEntry): NormalizedMedia {
+  return {
+    id: entry.id,
+    source: entry.source,
+    title: "Unavailable",
+    year: "—",
+    type:
+      entry.source === "tmdb_movie"
+        ? "Film"
+        : entry.source === "tmdb_tv"
+          ? "Series"
+          : "Anime",
+    overview: "Details are temporarily unavailable.",
+    posterUrl: null,
+    backdropUrl: null,
+  };
+}
 
 export async function fetchMedia(
   source: MediaSource,
@@ -185,13 +191,16 @@ export async function fetchMedia(
  * TMDB runs in parallel; Jikan is globally serialized via the queue.
  */
 export async function fetchMediaBatch(
-  entries: { id: number; source: MediaSource }[]
+  entries: MediaEntry[]
 ): Promise<NormalizedMedia[]> {
-  // Use allSettled so one failure doesn't break the entire batch
-  const settled = await Promise.allSettled(
-    entries.map((e) => fetchMedia(e.source, e.id))
+  return Promise.all(
+    entries.map(async (entry) => {
+      try {
+        return await fetchMedia(entry.source, entry.id);
+      } catch (error) {
+        console.warn(`Failed to load media ${entry.source}:${entry.id}`, error);
+        return createFallbackMedia(entry);
+      }
+    }),
   );
-  return settled
-    .filter((r): r is PromiseFulfilledResult<NormalizedMedia> => r.status === "fulfilled")
-    .map((r) => r.value);
 }

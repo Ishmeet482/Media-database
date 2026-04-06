@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { featuredConfig } from "@/lib/media-config";
@@ -10,25 +10,46 @@ const HeroSection = () => {
   const [direction, setDirection] = useState<"left" | "right">("right");
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
+  const transitionTimeoutRef = useRef<number>();
+  const settleTimeoutRef = useRef<number>();
 
   const { data: mediaItems, isLoading } = useMediaBatch(featuredConfig);
+  const featuredCount = featuredConfig.length;
 
-  const navigate = useCallback(
-    (dir: "left" | "right") => {
-      if (isTransitioning) return;
-      setIsTransitioning(true);
-      setDirection(dir);
-      setTimeout(() => {
-        setCurrent((prev) =>
-          dir === "right"
-            ? (prev + 1) % featuredConfig.length
-            : (prev - 1 + featuredConfig.length) % featuredConfig.length
-        );
-        setTimeout(() => setIsTransitioning(false), 50);
-      }, 300);
-    },
-    [isTransitioning]
-  );
+  useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        clearTimeout(transitionTimeoutRef.current);
+      }
+
+      if (settleTimeoutRef.current) {
+        clearTimeout(settleTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  const queueTransition = (
+    dir: "left" | "right",
+    nextSlide: number | ((previous: number) => number),
+  ) => {
+    if (isTransitioning) return;
+
+    setDirection(dir);
+    setIsTransitioning(true);
+
+    transitionTimeoutRef.current = window.setTimeout(() => {
+      setCurrent(nextSlide);
+      settleTimeoutRef.current = window.setTimeout(() => setIsTransitioning(false), 50);
+    }, 300);
+  };
+
+  const navigate = (dir: "left" | "right") => {
+    queueTransition(dir, (previous) =>
+      dir === "right"
+        ? (previous + 1) % featuredCount
+        : (previous - 1 + featuredCount) % featuredCount,
+    );
+  };
 
   if (isLoading || !mediaItems) return <HeroSkeleton />;
 
@@ -117,12 +138,7 @@ const HeroSection = () => {
               key={i}
               onClick={() => {
                 if (i === current || isTransitioning) return;
-                setDirection(i > current ? "right" : "left");
-                setIsTransitioning(true);
-                setTimeout(() => {
-                  setCurrent(i);
-                  setTimeout(() => setIsTransitioning(false), 50);
-                }, 300);
+                queueTransition(i > current ? "right" : "left", i);
               }}
               aria-label={`Go to slide ${i + 1}`}
               className={`h-1.5 rounded-full transition-all duration-300 ${

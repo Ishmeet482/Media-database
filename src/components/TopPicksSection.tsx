@@ -2,7 +2,6 @@ import { topPicksPrimary, topPicksSecondary } from "@/lib/media-config";
 import { useMediaBatch, mergeWithConfig } from "@/hooks/useMedia";
 import { CardSkeleton, SmallCardSkeleton } from "@/components/MediaSkeleton";
 
-
 const TopPicksSection = () => {
   const { data: primaryMedia, isLoading: loadingPrimary } = useMediaBatch(topPicksPrimary);
   const { data: secondaryMedia, isLoading: loadingSecondary } = useMediaBatch(topPicksSecondary);
@@ -14,7 +13,7 @@ const TopPicksSection = () => {
       {/* Primary picks — larger, more visual weight */}
       <div className="flex gap-5 overflow-x-auto hide-scrollbar pb-6">
         {loadingPrimary || !primaryMedia
-          ? Array.from({ length: 3 }).map((_, i) => (
+          ? Array.from({ length: topPicksPrimary.length }).map((_, i) => (
               <CardSkeleton key={i} className="min-w-[300px] max-w-[300px]" />
             ))
           : primaryMedia.map((media, i) => {
@@ -26,13 +25,13 @@ const TopPicksSection = () => {
                   className="group min-w-[300px] max-w-[300px] rounded-xl bg-card/60 backdrop-blur-xl border border-border/30 p-5 flex flex-col gap-3 opacity-0 animate-fade-in-right cursor-default transition-all duration-500 ease-out hover:border-primary/30 hover:scale-[1.03] hover:shadow-[0_0_40px_-10px_hsl(var(--primary)/0.2)]"
                   style={{ animationDelay: `${i * 0.1}s` }}
                 >
-                  <div className="h-40 rounded-lg overflow-hidden relative">
+                  <div className="aspect-[2/3] rounded-lg overflow-hidden relative bg-card/50">
                     {media.posterUrl ? (
                       <img
                         src={media.posterUrl}
                         alt={media.title}
                         loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-primary/15 to-accent/10" />
@@ -63,7 +62,7 @@ const TopPicksSection = () => {
       {/* Secondary picks — smaller, lighter */}
       <div className="flex gap-4 overflow-x-auto hide-scrollbar pb-4">
         {loadingSecondary || !secondaryMedia
-          ? Array.from({ length: 5 }).map((_, i) => (
+          ? Array.from({ length: topPicksSecondary.length }).map((_, i) => (
               <SmallCardSkeleton key={i} className="min-w-[230px] max-w-[230px]" />
             ))
           : secondaryMedia.map((media, i) => {
@@ -75,13 +74,13 @@ const TopPicksSection = () => {
                   className="group min-w-[230px] max-w-[230px] rounded-xl bg-card/40 backdrop-blur-xl border border-border/20 p-4 flex flex-col gap-2.5 opacity-0 animate-fade-in-right cursor-default transition-all duration-500 ease-out hover:border-primary/20 hover:scale-[1.03] hover:shadow-[0_0_30px_-10px_hsl(var(--primary)/0.15)]"
                   style={{ animationDelay: `${(i + 3) * 0.1}s` }}
                 >
-                  <div className="h-24 rounded-lg overflow-hidden relative">
+                  <div className="aspect-[2/3] rounded-lg overflow-hidden relative bg-card/50">
                     {media.posterUrl ? (
                       <img
                         src={media.posterUrl}
                         alt={media.title}
                         loading="lazy"
-                        className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
                       />
                     ) : (
                       <div className="absolute inset-0 bg-gradient-to-br from-muted/60 to-muted/30" />
