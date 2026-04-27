@@ -124,13 +124,16 @@ export const topPicksPrimary: MediaEntry[] = [
 ];
 
 export const topPicksSecondary: MediaEntry[] = [
-  { id: 68721, source: "tmdb_movie", insight: "Unleash the power behind the armor." },
+  { id: 127532, source: "tmdb_tv", insight: "he world is a stage, and we are all players." },
+  { id: 42310, source: "jikan", insight: "Just keep running" },
+  { id: 95557, source: "tmdb_tv", insight: "Almost there." },
   { id: 100088, source: "tmdb_tv", insight: "Every path has a price." },
   { id: 40075, source: "tmdb_tv", insight: "Just west of weird." },
   { id: 44511, source: "jikan", insight: "He's a devil who doesn't deserve human rights." },
+  { id: 61663, source: "tmdb_tv", insight: "I met the girl under full-bloomed cherry blossoms, and my fate has begun to change." },
   { id: 19, source: "jikan", insight: "The only thing humans are equal in is death." },
   { id: 66732, source: "tmdb_tv", insight: "It only gets stranger." },
-  { id: 42310, source: "jikan", insight: "Just keep running" },
+  { id: 68721, source: "tmdb_movie", insight: "Unleash the power behind the armor." },
   { id: 264660, source: "tmdb_movie", insight: "The Turing test as a trust exercise. Elegant and cold." },
 ];
 
